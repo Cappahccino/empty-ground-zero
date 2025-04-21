@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { BlockPalette } from "@/components/workflow/BlockPalette";
 import { WorkflowCanvas } from "@/components/workflow/WorkflowCanvas";
@@ -14,13 +13,58 @@ const WorkflowBuilder = () => {
   const [workflowName, setWorkflowName] = useState<string>("New Workflow");
   
   const addBlock = (blockType: BlockType, title: string) => {
-    const newBlock: AnyBlock = {
+    const getInitialConfig = (type: BlockType): AnyBlock['config'] => {
+      switch (type) {
+        case BlockType.SOURCE:
+          return {
+            sourceType: 'api' as const,
+            connectionId: '',
+            query: '',
+            filePath: '',
+          };
+        case BlockType.TRANSFORM:
+          return {
+            transformType: 'map' as const,
+            expression: '',
+            fieldMappings: {},
+          };
+        case BlockType.FILTER:
+          return {
+            condition: '',
+            field: '',
+            operator: 'equals' as const,
+            value: null,
+          };
+        case BlockType.JOIN:
+          return {
+            joinType: 'inner' as const,
+            rightSourceId: '',
+            joinConditions: [],
+          };
+        case BlockType.OUTPUT:
+          return {
+            outputType: 'api' as const,
+            connectionId: '',
+            destination: '',
+          };
+        case BlockType.CONDITION:
+          return {
+            condition: '',
+            trueBlockIds: [],
+            falseBlockIds: [],
+          };
+        default:
+          throw new Error(`Unsupported block type: ${type}`);
+      }
+    };
+
+    const newBlock = {
       id: `block-${Date.now()}`,
       type: blockType,
       title,
-      config: {},
+      config: getInitialConfig(blockType),
       position: blocks.length
-    } as AnyBlock;
+    };
     
     setBlocks([...blocks, newBlock]);
     setSelectedBlockId(newBlock.id);
