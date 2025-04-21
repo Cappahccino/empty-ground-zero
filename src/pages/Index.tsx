@@ -2,6 +2,9 @@
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import Footer from "@/components/Footer";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Workflow } from "lucide-react";
 
 const Index = () => {
   return (
@@ -22,6 +25,20 @@ const Index = () => {
                 </div>
               ))}
             </div>
+          </section>
+          
+          <section className="text-center">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Build Your Workflow</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto mb-8">
+              Create custom data workflows with our intuitive block-based workflow builder.
+              Transform, filter, and process your data without writing code.
+            </p>
+            <Link to="/workflow-builder">
+              <Button size="lg" className="gap-2">
+                <Workflow className="h-5 w-5" />
+                Open Workflow Builder
+              </Button>
+            </Link>
           </section>
         </div>
       </main>
