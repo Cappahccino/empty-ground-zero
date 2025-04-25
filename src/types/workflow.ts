@@ -1,4 +1,3 @@
-
 export enum BlockType {
   SOURCE = 'source',
   TRANSFORM = 'transform',
@@ -23,6 +22,11 @@ export interface SourceBlock extends Block {
     connectionId?: string;
     query?: string;
     filePath?: string;
+    fileName?: string;
+    fileId?: string;
+    fileType?: string;
+    sheetName?: string;
+    sheets?: string[];
   };
 }
 

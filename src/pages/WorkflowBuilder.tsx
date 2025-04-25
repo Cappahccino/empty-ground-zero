@@ -21,6 +21,11 @@ const WorkflowBuilder = () => {
             connectionId: '',
             query: '',
             filePath: '',
+            fileId: '',
+            fileName: '',
+            fileType: '',
+            sheetName: '',
+            sheets: [],
           };
         case BlockType.TRANSFORM:
           return {

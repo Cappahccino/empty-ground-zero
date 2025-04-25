@@ -1,12 +1,12 @@
-
-import { AnyBlock, BlockType } from "@/types/workflow";
+import { AnyBlock, BlockType, SourceBlock } from "@/types/workflow";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useEffect, useState } from "react";
+import { FileSourceProperties } from "./FileSourceProperties";
 
 interface PropertyInspectorProps {
   block: AnyBlock | undefined;
@@ -74,18 +74,20 @@ export const PropertyInspector = ({ block, onUpdateConfig }: PropertyInspectorPr
                 <Label className="text-xs" htmlFor="sourceType">
                   Source Type
                 </Label>
-                <select
-                  id="sourceType"
-                  className="w-full border border-gray-300 rounded h-8 text-sm px-2"
+                <Select
                   value={localConfig.sourceType || ''}
-                  onChange={(e) => handleChange('sourceType', e.target.value)}
+                  onValueChange={(value) => handleChange('sourceType', value)}
                 >
-                  <option value="">Select source type</option>
-                  <option value="api">API</option>
-                  <option value="db">Database</option>
-                  <option value="file">File</option>
-                  <option value="googleSheets">Google Sheets</option>
-                </select>
+                  <SelectTrigger id="sourceType" className="h-8 text-sm">
+                    <SelectValue placeholder="Select source type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="api">API</SelectItem>
+                    <SelectItem value="db">Database</SelectItem>
+                    <SelectItem value="file">File</SelectItem>
+                    <SelectItem value="googleSheets">Google Sheets</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               
               {localConfig.sourceType === 'api' && (
@@ -109,16 +111,18 @@ export const PropertyInspector = ({ block, onUpdateConfig }: PropertyInspectorPr
                     <Label className="text-xs" htmlFor="connectionId">
                       Connection
                     </Label>
-                    <select
-                      id="connectionId"
-                      className="w-full border border-gray-300 rounded h-8 text-sm px-2"
+                    <Select
                       value={localConfig.connectionId || ''}
-                      onChange={(e) => handleChange('connectionId', e.target.value)}
+                      onValueChange={(value) => handleChange('connectionId', value)}
                     >
-                      <option value="">Select connection</option>
-                      <option value="connection1">My Database</option>
-                      <option value="connection2">Analytics DB</option>
-                    </select>
+                      <SelectTrigger id="connectionId" className="h-8 text-sm">
+                        <SelectValue placeholder="Select connection" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="connection1">My Database</SelectItem>
+                        <SelectItem value="connection2">Analytics DB</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs" htmlFor="query">
@@ -136,16 +140,23 @@ export const PropertyInspector = ({ block, onUpdateConfig }: PropertyInspectorPr
               )}
               
               {localConfig.sourceType === 'file' && (
+                <FileSourceProperties 
+                  block={block as SourceBlock} 
+                  onUpdateConfig={(config) => onUpdateConfig(config)}
+                />
+              )}
+              
+              {localConfig.sourceType === 'googleSheets' && (
                 <div className="space-y-1">
-                  <Label className="text-xs" htmlFor="filePath">
-                    File Path
+                  <Label className="text-xs" htmlFor="sheetId">
+                    Google Sheet ID
                   </Label>
                   <Input
-                    id="filePath"
-                    value={localConfig.filePath || ''}
-                    onChange={(e) => handleChange('filePath', e.target.value)}
+                    id="sheetId"
+                    value={localConfig.sheetId || ''}
+                    onChange={(e) => handleChange('sheetId', e.target.value)}
                     className="h-8 text-sm"
-                    placeholder="/path/to/file.csv"
+                    placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"
                   />
                 </div>
               )}
