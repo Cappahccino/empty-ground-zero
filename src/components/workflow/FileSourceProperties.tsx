@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UploadCloud, FileText } from "lucide-react";
 import { SourceBlock } from "@/types/workflow";
+import { FileService } from '@/lib/services/fileService';
 
 interface FileSourcePropertiesProps {
   block: SourceBlock;
@@ -105,41 +106,15 @@ export function FileSourceProperties({ block, onUpdateConfig }: FileSourceProper
     if (!uploadFile) return;
     try {
       setIsLoading(true);
-      const formData = new FormData();
-      formData.append('file', uploadFile);
-      const response = await fetch('/api/workflow/files/upload', {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-        },
-        body: formData,
-        credentials: 'include',
-      });
-      if (!response.ok) {
-        let errorMsg = 'Failed to upload file.';
-        let errorData = {};
-        try {
-          errorData = await response.json();
-        } catch {}
-        if (response.status === 401) {
-          errorMsg = 'You must be signed in to upload files.';
-        } else if (response.status === 413) {
-          errorMsg = 'File is too large. Please upload a smaller file.';
-        } else if (response.status === 415) {
-          errorMsg = 'Unsupported file type. Please upload a CSV or Excel file.';
-        } else if (errorData && errorData.error) {
-          errorMsg = errorData.error;
-        }
-        alert(errorMsg);
-        throw new Error(errorMsg);
-      }
-      const fileInfo = await response.json();
-      setFiles(prev => [...prev, fileInfo]);
-      setSelectedFile(fileInfo.id);
-      setActiveTab("existing");
+      const fileService = new FileService();
+      // TODO: get workflowId/nodeId from block or context if available
+      const fileRecord = await fileService.uploadFile(uploadFile /*, { workflowId, nodeId }*/);
+      setFiles(prev => [...prev, fileRecord]);
+      setSelectedFile(fileRecord.id);
+      setActiveTab('existing');
       setUploadFile(null);
-    } catch (error) {
-      // Already alerted above, but log for devs
+    } catch (error: any) {
+      alert(error.message || 'Failed to upload file.');
       console.error('Error uploading file:', error);
     } finally {
       setIsLoading(false);
