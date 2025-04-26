@@ -42,46 +42,28 @@ export class FileService {
   }
 
   /**
-   * Upload a file to the storage bucket and register it in the DB via edge function
+   * Upload a file to the storage bucket
    */
-  async uploadFile(
-    file: File,
-    options?: { workflowId?: string; nodeId?: string }
-  ): Promise<any> {
-    const path = `${Date.now()}_${file.name}`;
-    // 1. Upload to storage
+  async uploadFile(file: File, filePath?: string): Promise<FileInfo> {
+    const path = filePath || `${Date.now()}_${file.name}`;
+    
     const { data, error } = await supabase
       .storage
       .from(this.bucket)
       .upload(path, file);
+
     if (error) {
       console.error('Error uploading file:', error);
       throw error;
     }
-    // 2. Call edge function to register in DB
-    const edgePayload: Record<string, any> = {
-      storage_path: path,
-      original_name: file.name,
-      mime_type: file.type || 'application/octet-stream',
+
+    return {
+      id: data.path,
+      name: file.name,
+      type: file.name.split('.').pop() || '',
       size: file.size,
-      storage_bucket: this.bucket,
+      created_at: new Date().toISOString(),
     };
-    if (options?.workflowId) edgePayload.workflow_id = options.workflowId;
-    if (options?.nodeId) edgePayload.node_id = options.nodeId;
-    const edgeRes = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPABASE_FUNCTION_URL || ''}/upload-file`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(edgePayload),
-      }
-    );
-    if (!edgeRes.ok) {
-      const err = await edgeRes.json();
-      throw new Error(err.error || 'Failed to register file in DB');
-    }
-    const fileRecord = await edgeRes.json();
-    return fileRecord;
   }
 
   /**
