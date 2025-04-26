@@ -58,7 +58,7 @@ export class FileService {
       console.error('Error uploading file:', error);
       throw error;
     }
-    // 2. Call edge function to register in DB
+    // 2. Call edge function using supabase.functions.invoke
     const edgePayload: Record<string, any> = {
       storage_path: path,
       original_name: file.name,
@@ -68,19 +68,12 @@ export class FileService {
     };
     if (options?.workflowId) edgePayload.workflow_id = options.workflowId;
     if (options?.nodeId) edgePayload.node_id = options.nodeId;
-    const edgeRes = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPABASE_FUNCTION_URL || ''}/upload-file`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(edgePayload),
-      }
-    );
-    if (!edgeRes.ok) {
-      const err = await edgeRes.json();
-      throw new Error(err.error || 'Failed to register file in DB');
+    const { data: fileRecord, error: fnError } = await supabase.functions.invoke('upload-file', {
+      body: edgePayload,
+    });
+    if (fnError) {
+      throw fnError;
     }
-    const fileRecord = await edgeRes.json();
     return fileRecord;
   }
 
