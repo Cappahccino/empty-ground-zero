@@ -224,41 +224,43 @@ export function FileSourceProperties({ block, onUpdateConfig }: FileSourceProper
         </TabsContent>
         
         <TabsContent value="upload" className="space-y-4">
-          <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center">
-            <UploadCloud className="mx-auto h-12 w-12 text-gray-400" />
-            <div className="mt-2">
-              <label htmlFor="file-upload" className="cursor-pointer text-sm font-medium text-blue-600 hover:text-blue-500">
-                Click to upload
-                <input 
-                  id="file-upload" 
-                  name="file-upload" 
-                  type="file" 
-                  className="sr-only"
-                  accept=".csv,.xlsx,.xls"
-                  onChange={e => e.target.files && setUploadFile(e.target.files[0])}
-                />
-              </label>
-              <p className="text-xs text-gray-500">
-                CSV, Excel (.xlsx, .xls)
-              </p>
-            </div>
-          </div>
-          
-          {uploadFile && (
-            <div className="text-sm flex items-center justify-between p-2 bg-gray-50 rounded">
-              <div className="flex items-center">
-                <FileText className="w-4 h-4 mr-2" />
-                <span>{uploadFile.name}</span>
+          <div className="space-y-4">
+            <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center">
+              <UploadCloud className="mx-auto h-12 w-12 text-gray-400" />
+              <div className="mt-2">
+                <label htmlFor="file-upload" className="cursor-pointer text-sm font-medium text-blue-600 hover:text-blue-500">
+                  Click to select file
+                  <input 
+                    id="file-upload" 
+                    name="file-upload" 
+                    type="file" 
+                    className="sr-only"
+                    accept=".csv,.xlsx,.xls"
+                    onChange={e => e.target.files && setUploadFile(e.target.files[0])}
+                  />
+                </label>
+                <p className="text-xs text-gray-500 mt-1">
+                  CSV, Excel (.xlsx, .xls)
+                </p>
               </div>
-              <Button 
-                size="sm" 
-                onClick={handleFileUpload}
-                disabled={isLoading}
-              >
-                Upload
-              </Button>
             </div>
-          )}
+            
+            {uploadFile && (
+              <div className="space-y-2">
+                <div className="text-sm p-2 bg-gray-50 rounded flex items-center">
+                  <FileText className="w-4 h-4 mr-2" />
+                  <span className="flex-1 truncate">{uploadFile.name}</span>
+                </div>
+                <Button 
+                  className="w-full"
+                  onClick={handleFileUpload}
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Uploading...' : 'Upload File'}
+                </Button>
+              </div>
+            )}
+          </div>
         </TabsContent>
       </Tabs>
     </div>
