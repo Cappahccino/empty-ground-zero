@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { FileService } from '@/lib/services/fileService';
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,9 +18,37 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Generate a unique filename
+    const timestamp = Date.now();
+    const uniqueFileName = `${timestamp}_${file.name}`;
     
-    const fileService = new FileService();
-    const fileInfo = await fileService.uploadFile(file);
+    // Upload to Supabase Storage
+    const { data: storageData, error: storageError } = await supabase
+      .storage
+      .from('workflow-files')
+      .upload(uniqueFileName, file);
+
+    if (storageError) {
+      console.error('Error uploading to storage:', storageError);
+      throw storageError;
+    }
+
+    // Get the file URL
+    const { data: urlData } = await supabase
+      .storage
+      .from('workflow-files')
+      .createSignedUrl(uniqueFileName, 3600); // 1 hour expiry
+
+    // Return file information
+    const fileInfo = {
+      id: uniqueFileName,
+      name: file.name,
+      type: file.name.split('.').pop() || '',
+      size: file.size,
+      url: urlData?.signedUrl,
+      created_at: new Date().toISOString()
+    };
     
     return NextResponse.json(fileInfo);
   } catch (error) {
