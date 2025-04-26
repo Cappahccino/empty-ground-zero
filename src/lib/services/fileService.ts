@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Initialize Supabase client
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -42,39 +42,28 @@ export class FileService {
   }
 
   /**
-   * Upload a file to the storage bucket and register it in the DB via edge function
+   * Upload a file to the storage bucket
    */
-  async uploadFile(
-    file: File,
-    options?: { workflowId?: string; nodeId?: string }
-  ): Promise<any> {
-    const path = `${Date.now()}_${file.name}`;
-    // 1. Upload to storage
+  async uploadFile(file: File, filePath?: string): Promise<FileInfo> {
+    const path = filePath || `${Date.now()}_${file.name}`;
+    
     const { data, error } = await supabase
       .storage
       .from(this.bucket)
       .upload(path, file);
+
     if (error) {
       console.error('Error uploading file:', error);
       throw error;
     }
-    // 2. Call edge function using supabase.functions.invoke
-    const edgePayload: Record<string, any> = {
-      storage_path: path,
-      original_name: file.name,
-      mime_type: file.type || 'application/octet-stream',
+
+    return {
+      id: data.path,
+      name: file.name,
+      type: file.name.split('.').pop() || '',
       size: file.size,
-      storage_bucket: this.bucket,
+      created_at: new Date().toISOString(),
     };
-    if (options?.workflowId) edgePayload.workflow_id = options.workflowId;
-    if (options?.nodeId) edgePayload.node_id = options.nodeId;
-    const { data: fileRecord, error: fnError } = await supabase.functions.invoke('upload-file', {
-      body: edgePayload,
-    });
-    if (fnError) {
-      throw fnError;
-    }
-    return fileRecord;
   }
 
   /**
