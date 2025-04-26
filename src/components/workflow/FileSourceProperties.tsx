@@ -112,14 +112,22 @@ export function FileSourceProperties({ block, onUpdateConfig }: FileSourceProper
       
       const response = await fetch('/api/workflow/files/upload', {
         method: 'POST',
-        body: formData
+        headers: {
+          // Remove Content-Type header to let the browser set it with the boundary
+          'Accept': 'application/json',
+        },
+        body: formData,
+        credentials: 'include', // Include cookies for authentication
       });
       
       if (!response.ok) {
-        throw new Error('Failed to upload file');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Upload error:', errorData);
+        throw new Error(errorData.error || 'Failed to upload file');
       }
       
       const fileInfo = await response.json();
+      console.log('File uploaded successfully:', fileInfo);
       
       // Add the new file to the list
       setFiles(prev => [...prev, fileInfo]);
@@ -132,21 +140,8 @@ export function FileSourceProperties({ block, onUpdateConfig }: FileSourceProper
       setUploadFile(null);
     } catch (error) {
       console.error('Error uploading file:', error);
-      
-      // Fallback for development - create mock file
-      const fileId = `file-${Date.now()}`;
-      const fileName = uploadFile.name;
-      const fileType = fileName.split('.').pop() || '';
-      
-      // Add the new file to the list
-      setFiles(prev => [...prev, { id: fileId, name: fileName, type: fileType }]);
-      
-      // Select the newly uploaded file
-      setSelectedFile(fileId);
-      setActiveTab("existing");
-      
-      // Clear the upload
-      setUploadFile(null);
+      // Show error to user (you might want to add a toast notification here)
+      alert(error instanceof Error ? error.message : 'Failed to upload file');
     } finally {
       setIsLoading(false);
     }
